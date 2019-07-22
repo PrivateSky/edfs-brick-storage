@@ -1,10 +1,9 @@
 require("psk-http-client");
 const bar = require("bar");
 const Brick = bar.Brick;
+const ArchiveConfigurator = bar.ArchiveConfigurator;
 
 function EDFSBrickStorage(url) {
-
-    let barMap;
 
     this.putBrick = function (brick, callback) {
         $$.remote.doHttpPost(url + "/EDFS/" + brick.getHash(), brick.getData(), callback);
@@ -20,7 +19,7 @@ function EDFSBrickStorage(url) {
         throw new Error("Not implemented");
     };
 
-    this.putBarMap = function (callback) {
+    this.putBarMap = function (barMap, callback) {
         const mapBrick = barMap.toBrick();
         this.putBrick(mapBrick, (err) => {
             callback(err, mapBrick.getHash());
@@ -34,8 +33,7 @@ function EDFSBrickStorage(url) {
         }
 
         if (typeof mapDigest === "undefined") {
-            barMap = new bar.FolderBarMap();
-            return callback(undefined, barMap);
+            return callback(undefined, new bar.FolderBarMap());
         }
 
         this.getBrick(mapDigest, (err, mapBrick) => {
@@ -43,12 +41,9 @@ function EDFSBrickStorage(url) {
                 return callback(err);
             }
 
-            barMap = new bar.FolderBarMap(JSON.parse(mapBrick.getData().toString()));
-            callback(undefined, barMap);
+            callback(undefined, new bar.FolderBarMap(JSON.parse(mapBrick.getData().toString())));
         });
     }
 }
 
-module.exports.createEDFSBrickStorage = function (url) {
-    return new EDFSBrickStorage(url);
-};
+module.exports = EDFSBrickStorage;
