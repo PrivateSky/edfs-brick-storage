@@ -1,7 +1,6 @@
 require("psk-http-client");
 const bar = require("bar");
 const Brick = bar.Brick;
-const ArchiveConfigurator = bar.ArchiveConfigurator;
 
 function EDFSBrickStorage(url) {
 
@@ -47,3 +46,4 @@ function EDFSBrickStorage(url) {
 }
 
 module.exports = EDFSBrickStorage;
+
