@@ -45,5 +45,9 @@ function EDFSBrickStorage(url) {
     }
 }
 
-module.exports = EDFSBrickStorage;
+module.exports = {
+    createEDFSBrickStorage(url) {
+        return new EDFSBrickStorage(url);
+    }
+};
 
