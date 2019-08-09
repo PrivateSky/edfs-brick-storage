@@ -1,11 +1,17 @@
 require("psk-http-client");
 const bar = require("bar");
 const Brick = bar.Brick;
+let EdfsBrickQueue = require("./EDFSBrickQueue").EDFSBrickQueue;
+let brickQueue = new EdfsBrickQueue(30);
 
 function EDFSBrickStorage(url) {
 
     this.putBrick = function (brick, callback) {
-        $$.remote.doHttpPost(url + "/EDFS/" + brick.getHash(), brick.getData(), callback);
+
+        brickQueue.addBrickInQueue({
+            url: url + "/EDFS/" + brick.getHash(),
+            brickData: brick.getData()
+        }, callback);
     };
 
     this.getBrick = function (brickHash, callback) {
@@ -20,6 +26,7 @@ function EDFSBrickStorage(url) {
 
     this.putBarMap = function (barMap, callback) {
         const mapBrick = barMap.toBrick();
+        console.log(mapBrick.getHash());
         this.putBrick(mapBrick, (err) => {
             callback(err, mapBrick.getHash());
         });
