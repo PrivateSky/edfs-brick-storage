@@ -1,23 +1,26 @@
 require("psk-http-client");
 const bar = require("bar");
 const Brick = bar.Brick;
-let EdfsBrickQueue = require("./EDFSBrickQueue").EDFSBrickQueue;
-let brickQueue = new EdfsBrickQueue(30);
+let PutBrickQueue = require("./EDFSBrickQueue").EDFSPutBrickQueue;
+let GetBrickQueue = require("./EDFSBrickQueue").EDFSGetBrickQueue;
+let putBrickQueue = new PutBrickQueue(30);
+let getBrickQueue = new GetBrickQueue(30);
 
 function EDFSBrickStorage(url) {
 
     this.putBrick = function (brick, callback) {
 
-        brickQueue.addBrickInQueue({
+        putBrickQueue.addQueueRequest({
             url: url + "/EDFS/" + brick.getHash(),
             brickData: brick.getData()
         }, callback);
     };
 
     this.getBrick = function (brickHash, callback) {
-        $$.remote.doHttpGet(url + "/EDFS/" + brickHash, (err, brickData) => {
+
+        getBrickQueue.addQueueRequest(url + "/EDFS/" + brickHash, (err, brickData)=>{
             callback(err, new Brick(brickData));
-        });
+        })
     };
 
     this.deleteBrick = function (brickHash, callback) {
