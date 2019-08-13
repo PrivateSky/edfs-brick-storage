@@ -3,24 +3,56 @@ const bar = require("bar");
 const Brick = bar.Brick;
 let PutBrickQueue = require("./EDFSBrickQueue").EDFSPutBrickQueue;
 let GetBrickQueue = require("./EDFSBrickQueue").EDFSGetBrickQueue;
-let putBrickQueue = new PutBrickQueue(30);
-let getBrickQueue = new GetBrickQueue(30);
+function EDFSBrickStorage(urls) {
 
-function EDFSBrickStorage(url) {
+    let putBrickQueue = new PutBrickQueue(30);
+    let getBrickQueue = new GetBrickQueue(30);
+
+    if (typeof urls === "string") {
+        urls = [urls]
+    }
+
+    console.log(urls);
+    let urlIndex = -1;
+
+    function getStorageUrlAddress() {
+        urlIndex++;
+        if (urlIndex >= urls.length) {
+            urlIndex = 0;
+        }
+        return urls[urlIndex];
+    }
 
     this.putBrick = function (brick, callback) {
+        let callbackSent = false;
 
-        putBrickQueue.addQueueRequest({
-            url: url + "/EDFS/" + brick.getHash(),
-            brickData: brick.getData()
-        }, callback);
+        let handler = function (err, data, headers) {
+            if (callbackSent) {
+                if (err) {
+                    callback(err);
+                }
+            } else {
+                callback(err, data, headers)
+            }
+        };
+        let url = getStorageUrlAddress();
+
+        putBrickQueue.addBrickRequest(url + "/EDFS/" + brick.getHash(),
+            brick.getData(),
+            handler);
+
+        if (putBrickQueue.getQueueFreeSlots() > 0) {
+            callbackSent = true;
+            callback();
+        }
+
     };
 
     this.getBrick = function (brickHash, callback) {
-
-        getBrickQueue.addQueueRequest(url + "/EDFS/" + brickHash, (err, brickData)=>{
+        let url = getStorageUrlAddress();
+        getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
             callback(err, new Brick(brickData));
-        })
+        });
     };
 
     this.deleteBrick = function (brickHash, callback) {

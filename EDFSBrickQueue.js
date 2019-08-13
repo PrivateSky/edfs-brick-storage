@@ -1,48 +1,25 @@
 const MAX_QUE_SUPPORTED = 100;
-const SUPPORTED_HTTP_VERBS = ["POST","GET"];
 
-function EDFSBrickQueue(type, queueLimit) {
+function EDFSBrickQueue(action, queueLimit) {
 
     if (!Number.isInteger(queueLimit) || queueLimit > MAX_QUE_SUPPORTED) {
         throw new Error("Que limit should be a number greater than 0 and lower than " + MAX_QUE_SUPPORTED);
     }
 
-    if(!SUPPORTED_HTTP_VERBS.includes(type.toUpperCase())){
-        throw new Error(type +"is not supported! Supported verbs are " + SUPPORTED_HTTP_VERBS);
-    }
-
     let bricksQueue = [];
     let rateLimit = queueLimit;
-
-    let action = function(){
-        throw new Error("Not implemented");
-    };
-
-    switch (type.toUpperCase()) {
-        case "POST":
-            action = $$.remote.doHttpPost;
-            this.addQueueRequest = putBrickQueue;
-            break;
-        case "GET":
-            action = $$.remote.doHttpGet;
-            this.addQueueRequest = getBrickQueue;
-            break;
-    }
-
 
     function executeQueue() {
         let item = bricksQueue.pop();
         let {callback, ...requestData} = item;
         action(...Object.values(requestData), (err, data, headers) => {
-
                 if (err) {
                     if (err.statusCode === 429) {
                         console.log("Too many requets!");
                         bricksQueue.push(item);
                         setTimeout(executeQueue, 1000);
                     } else {
-                        //TODO handle status codes like 500, 404, 503
-                        console.log(err);
+                        callback(err);
                     }
                 } else {
                     if (typeof headers !== "undefined" && headers.hasOwnProperty("x-ratelimit-remaining")) {
@@ -62,38 +39,52 @@ function EDFSBrickQueue(type, queueLimit) {
         );
     }
 
-    function putBrickQueue(brickRequest, callback) {
+    this.addBrickRequest = function (url, ...args) {
 
         let queueData = {
-            url: brickRequest.url,
-            brickData: brickRequest.brickData
+            url: url
         };
 
-        if (bricksQueue.length >= rateLimit) {
-            queueData ['callback'] = callback;
-        } else {
-            callback();
+        switch (args.length) {
+            case 1:
+                if (typeof args[0] !== "function") {
+                    throw new Error("Invalid brick data.")
+                }
+                queueData['callback'] = args[0];
+                break;
+            case 2:
+                if (typeof args[0] !== "object") {
+                    throw new Error("Invalid brick data.")
+                }
+                if (typeof args[1] !== "function") {
+                    throw new Error("Invalid callback function.")
+                }
+                queueData['brickData'] = args[0];
+                queueData['callback'] = args[1];
+                break;
+            default:
+                throw new Error("Too many arguments.");
         }
 
         bricksQueue.push(queueData);
         executeQueue();
-    }
+    };
 
-     function getBrickQueue (url,callback){
-        bricksQueue.push({
-            url:url,
-            callback:callback
-        });
-         executeQueue();
-    }
+    this.getQueueSize = function () {
+        return bricksQueue.length;
+    };
+
+    this.getQueueFreeSlots = function () {
+        return rateLimit;
+    };
 }
 
 module.exports = {
     EDFSPutBrickQueue: function (limit) {
-        return new EDFSBrickQueue("POST", limit);
+        return new EDFSBrickQueue($$.remote.doHttpPost, limit);
     },
 
     EDFSGetBrickQueue: function (limit) {
-        return new EDFSBrickQueue("GET", limit);
+        return new EDFSBrickQueue($$.remote.doHttpGet, limit);
     }
 };
