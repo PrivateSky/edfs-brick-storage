@@ -51,21 +51,17 @@ function EDFSBrickStorage(urls) {
 
 
     function checkBricks() {
-        console.log("here",bricksQueue.length);
-        for (let i = 0; i < bricksQueue.length; i++) {
-            let brickRequest = bricksQueue[i];
-            console.log(brickRequest.data);
-            if (brickRequest.data) {
+
+            console.log(bricksQueue.length);
+            let brickRequest = bricksQueue[0];
+            if (brickRequest && brickRequest.data) {
                 let data = brickRequest.data;
                 brickRequest.callback(data.err, new Brick(data.brickData));
-                bricksQueue = bricksQueue.slice(i);
-                i--;
-            }
-            else{
-                break;
+                console.log("Dau inapoi", brickRequest.brickHash);
+                bricksQueue.shift();
+                checkBricks();
             }
         }
-    }
 
     this.getBrick = function (brickHash, callback) {
 
