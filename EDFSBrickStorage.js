@@ -3,6 +3,7 @@ const bar = require("bar");
 const Brick = bar.Brick;
 let PutBrickQueue = require("./EDFSBrickQueue").EDFSPutBrickQueue;
 let GetBrickQueue = require("./EDFSBrickQueue").EDFSGetBrickQueue;
+let bricksQueue = [];
 function EDFSBrickStorage(urls) {
 
     let putBrickQueue = new PutBrickQueue(30);
@@ -48,11 +49,37 @@ function EDFSBrickStorage(urls) {
 
     };
 
+
+    function checkBricks() {
+        console.log("here",bricksQueue.length);
+        for (let i = 0; i < bricksQueue.length; i++) {
+            let brickRequest = bricksQueue[i];
+            console.log(brickRequest.data);
+            if (brickRequest.data) {
+                let data = brickRequest.data;
+                brickRequest.callback(data.err, new Brick(data.brickData));
+                bricksQueue = bricksQueue.slice(i);
+                i--;
+            }
+            else{
+                break;
+            }
+        }
+    }
+
     this.getBrick = function (brickHash, callback) {
+
+        console.log(brickHash);
+        let myData = {brickHash: brickHash, callback: callback, data:null}
+        bricksQueue.push(myData);
+
         let url = getStorageUrlAddress();
         getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
-            callback(err, new Brick(brickData));
+            myData.data = {err:err, brickData:brickData};
+            checkBricks();
+            //callback(err, new Brick(brickData));
         });
+
     };
 
     this.deleteBrick = function (brickHash, callback) {
