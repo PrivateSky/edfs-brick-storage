@@ -13,7 +13,6 @@ function EDFSBrickStorage(urls) {
         urls = [urls]
     }
 
-    console.log(urls);
     let urlIndex = -1;
 
     function getStorageUrlAddress() {
@@ -23,6 +22,17 @@ function EDFSBrickStorage(urls) {
         }
         return urls[urlIndex];
     }
+
+    function handleBricksOrder() {
+        let brickRequest = bricksQueue[0];
+        if (brickRequest && brickRequest.data) {
+            let data = brickRequest.data;
+            brickRequest.callback(data.err, new Brick(data.brickData));
+            bricksQueue.shift();
+            handleBricksOrder();
+        }
+    }
+
 
     this.putBrick = function (brick, callback) {
         let callbackSent = false;
@@ -46,36 +56,19 @@ function EDFSBrickStorage(urls) {
             callbackSent = true;
             callback();
         }
-
     };
 
 
-    function checkBricks() {
-
-            console.log(bricksQueue.length);
-            let brickRequest = bricksQueue[0];
-            if (brickRequest && brickRequest.data) {
-                let data = brickRequest.data;
-                brickRequest.callback(data.err, new Brick(data.brickData));
-                console.log("Dau inapoi", brickRequest.brickHash);
-                bricksQueue.shift();
-                checkBricks();
-            }
-        }
-
     this.getBrick = function (brickHash, callback) {
 
-        console.log(brickHash);
-        let myData = {brickHash: brickHash, callback: callback, data:null}
-        bricksQueue.push(myData);
+        let brickRequest = {brickHash: brickHash, callback: callback, data:null}
+        bricksQueue.push(brickRequest);
 
         let url = getStorageUrlAddress();
         getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
-            myData.data = {err:err, brickData:brickData};
-            checkBricks();
-            //callback(err, new Brick(brickData));
+            brickRequest.data = {err:err, brickData:brickData};
+            handleBricksOrder();
         });
-
     };
 
     this.deleteBrick = function (brickHash, callback) {
@@ -84,7 +77,6 @@ function EDFSBrickStorage(urls) {
 
     this.putBarMap = function (barMap, callback) {
         const mapBrick = barMap.toBrick();
-        console.log(mapBrick.getHash());
         this.putBrick(mapBrick, (err) => {
             callback(err, mapBrick.getHash());
         });

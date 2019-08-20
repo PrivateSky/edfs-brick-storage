@@ -1,4 +1,5 @@
 const MAX_QUE_SUPPORTED = 100;
+const NETWORK_TIMEOUT = 1000;
 
 function EDFSBrickQueue(action, queueLimit) {
 
@@ -10,6 +11,11 @@ function EDFSBrickQueue(action, queueLimit) {
     let rateLimit = queueLimit;
 
     function executeQueue() {
+
+        if(bricksQueue.length === 0){
+            return;
+        }
+
         let item = bricksQueue.pop();
         let {callback, ...requestData} = item;
         action(...Object.values(requestData), (err, data, headers) => {
@@ -17,7 +23,7 @@ function EDFSBrickQueue(action, queueLimit) {
                     if (err.statusCode === 429) {
                         console.log("Too many requets!");
                         bricksQueue.push(item);
-                        setTimeout(executeQueue, 1000);
+                        setTimeout(executeQueue, NETWORK_TIMEOUT);
                     } else {
                         callback(err);
                     }
@@ -28,7 +34,15 @@ function EDFSBrickQueue(action, queueLimit) {
                         if (!isNaN(remainingQuota)) {
                             rateLimit = remainingQuota
                         }
-                        console.log("RateLimit, ", rateLimit);
+
+                        if(rateLimit > 0){
+                            if(bricksQueue.length>0){
+                                executeQueue();
+                            }
+                        }
+                        else{
+                            setTimeout(executeQueue, NETWORK_TIMEOUT);
+                        }
                     }
 
                     if (callback) {
@@ -67,7 +81,11 @@ function EDFSBrickQueue(action, queueLimit) {
         }
 
         bricksQueue.push(queueData);
-        executeQueue();
+
+        if (rateLimit > 0) {
+            rateLimit--;
+            executeQueue();
+        }
     };
 
     this.getQueueSize = function () {
