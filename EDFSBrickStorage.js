@@ -23,13 +23,24 @@ function EDFSBrickStorage(urls) {
         return urls[urlIndex];
     }
 
+    function isConnectionError(err){
+        if(err && err.code === "ECONNREFUSED"){
+            console.error("EDFS Server is unavailable! Try again later!");
+            return true;
+        }
+        return false;
+    }
+
     function handleBricksOrder() {
         let brickRequest = bricksQueue[0];
         if (brickRequest && brickRequest.data) {
             let data = brickRequest.data;
-            brickRequest.callback(data.err, new Brick(data.brickData));
-            bricksQueue.shift();
-            handleBricksOrder();
+            if(!isConnectionError(data.err)){
+                brickRequest.callback(data.err, new Brick(data.brickData));
+                bricksQueue.shift();
+                handleBricksOrder();
+            }
+
         }
     }
 
@@ -38,12 +49,14 @@ function EDFSBrickStorage(urls) {
         let callbackSent = false;
 
         let handler = function (err, data, headers) {
-            if (callbackSent) {
-                if (err) {
-                    callback(err);
+            if(!isConnectionError(err)){
+                if (callbackSent) {
+                    if (err) {
+                        callback(err);
+                    }
+                } else {
+                    callback(err, data, headers)
                 }
-            } else {
-                callback(err, data, headers)
             }
         };
         let url = getStorageUrlAddress();
