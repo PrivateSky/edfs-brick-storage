@@ -21,7 +21,7 @@ function EDFSBrickQueue(action, queueLimit) {
         action(...Object.values(requestData), (err, data, headers) => {
                 if (err) {
                     if (err.statusCode === 429) {
-                        console.log("Too many requets!");
+                        console.log("Too many requests!");
                         bricksQueue.push(item);
                         setTimeout(executeQueue, NETWORK_TIMEOUT);
                     } else {
