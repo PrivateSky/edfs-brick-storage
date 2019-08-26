@@ -1,13 +1,10 @@
-let bricks = {
-    "aaaa": "111111111111111",
-    "bbbb": "22222222222222"
-}
+let storeBricks = [];
 
-let requestsLimit = 100;
+let requestsLimit = 40;
 
 setInterval(() => {
     requestsLimit += 10;
-}, 1000);
+}, 2000);
 
 
 function checkLimit(callback) {
@@ -26,9 +23,14 @@ function checkLimit(callback) {
     callback(err, headers);
 }
 
-function processPostRequest(url, data, callback) {
+function getBrickHashFromUrl(url){
+    return url.substring(url.indexOf("/EDFS/")+6);
+}
 
-    
+function processPostRequest(url, data, headers, callback) {
+let brickHash = getBrickHashFromUrl(url);
+    storeBricks[brickHash] = data;
+    callback(null, null, headers);
 }
 
 function processGetRequest(url, callback) {
@@ -40,19 +42,16 @@ function doHttpPost(url, data, callback) {
         if (err) {
             return callback(err, null, headers);
         }
-
-        processPostRequest(url, data, callback);
+        processPostRequest(url, data, headers, callback);
 
     })
 }
 
 function doHttpGet(url, callback) {
-    console.log("Sunt aici");
     checkLimit((err, headers) => {
         if (err) {
             return callback(err, null, headers);
         }
-
         processGetRequest(url, callback);
 
     })

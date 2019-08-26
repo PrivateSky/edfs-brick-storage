@@ -26,7 +26,6 @@ function EDFSQueueTest(url) {
 
         getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
             brickRequest.data = {err:err, brickData:brickData};
-            console.log("GET Gata");
             //handleBricksOrder();
         });
     };
