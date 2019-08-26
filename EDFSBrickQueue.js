@@ -18,7 +18,9 @@ function EDFSBrickQueue(action, queueLimit) {
 
         let item = bricksQueue.pop();
         let {callback, ...requestData} = item;
-        action(...Object.values(requestData), (err, data, headers) => {
+        let args = Object.values(requestData);
+        console.log(args,action);
+        action(...args, (err, data, headers) => {
                 if (err) {
                     if (err.statusCode === 429) {
                         console.log("Too many requests!");
@@ -58,7 +60,7 @@ function EDFSBrickQueue(action, queueLimit) {
         let queueData = {
             url: url
         };
-
+        console.log(args);
         switch (args.length) {
             case 1:
                 if (typeof args[0] !== "function") {
