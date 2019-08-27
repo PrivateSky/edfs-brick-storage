@@ -1,14 +1,12 @@
 let storeBricks = [];
 
-let requestsLimit = 40;
+let requestsLimit = 500;
 
 setInterval(() => {
     requestsLimit += 10;
-}, 2000);
-
+}, 1500);
 
 function checkLimit(callback) {
-
     let headers = [];
     let err = null;
 
@@ -20,7 +18,10 @@ function checkLimit(callback) {
             statusCode: 429
         };
     }
-    callback(err, headers);
+    setTimeout(()=>{
+        callback(err, headers);
+    },10)
+
 }
 
 function getBrickHashFromUrl(url){
@@ -33,8 +34,16 @@ let brickHash = getBrickHashFromUrl(url);
     callback(null, null, headers);
 }
 
-function processGetRequest(url, callback) {
-
+function processGetRequest(url, headers, callback) {
+    let brickHash = getBrickHashFromUrl(url);
+    if (storeBricks[brickHash]) {
+        callback(null, storeBricks[brickHash], headers);
+    } else {
+        let err = {
+            statusCode: 404
+        };
+        callback(err, null, headers);
+    }
 }
 
 function doHttpPost(url, data, callback) {
@@ -52,9 +61,11 @@ function doHttpGet(url, callback) {
         if (err) {
             return callback(err, null, headers);
         }
-        processGetRequest(url, callback);
 
-    })
+        setTimeout(()=>{
+            processGetRequest(url, headers, callback);
+        },parseInt(Math.random()*500));
+    });
 }
 
 

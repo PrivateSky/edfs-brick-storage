@@ -12,10 +12,15 @@ function EDFSBrickQueue(action, queueLimit) {
 
     function executeQueue() {
 
-        if(bricksQueue.length === 0){
+        if (bricksQueue.length === 0) {
             return;
         }
 
+        if (rateLimit <= 0) {
+            rateLimit++;
+            return setTimeout(executeQueue, NETWORK_TIMEOUT);
+        }
+        rateLimit--;
         let item = bricksQueue.pop();
         let {callback, ...requestData} = item;
         let args = Object.values(requestData);
@@ -26,24 +31,16 @@ function EDFSBrickQueue(action, queueLimit) {
                         bricksQueue.push(item);
                         setTimeout(executeQueue, NETWORK_TIMEOUT);
                     } else {
-                        callback(err);
+                        return callback(err);
                     }
                 } else {
                     if (typeof headers !== "undefined" && headers.hasOwnProperty("x-ratelimit-remaining")) {
                         let remainingQuota = Number.parseInt(headers['x-ratelimit-remaining']);
 
                         if (!isNaN(remainingQuota)) {
-                            rateLimit = remainingQuota
+                            rateLimit = remainingQuota;
                         }
-
-                        if(rateLimit > 0){
-                            if(bricksQueue.length>0){
-                                executeQueue();
-                            }
-                        }
-                        else{
-                            setTimeout(executeQueue, NETWORK_TIMEOUT);
-                        }
+                        executeQueue();
                     }
 
                     if (callback) {
@@ -61,10 +58,15 @@ function EDFSBrickQueue(action, queueLimit) {
         };
         switch (args.length) {
             case 1:
-                if (typeof args[0] !== "function") {
-                    throw new Error("Invalid brick data.")
+                if (typeof args[0] === "object") {
+                    queueData['brickData'] = args[0];
+                } else {
+                    if (typeof args[0] === "function") {
+                        queueData['callback'] = args[0];
+                    } else {
+                        throw new Error("Invalid arguments")
+                    }
                 }
-                queueData['callback'] = args[0];
                 break;
             case 2:
                 if (typeof args[0] !== "object") {
@@ -83,7 +85,6 @@ function EDFSBrickQueue(action, queueLimit) {
         bricksQueue.push(queueData);
 
         if (rateLimit > 0) {
-            rateLimit--;
             executeQueue();
         }
     };
