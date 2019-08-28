@@ -37,11 +37,10 @@ function EDFSQueueTest(url) {
 
     function handleBricksOrder() {
 
-        let mapper = bricksQueue.map((brickRequest)=>{
+        /*let mapper = bricksQueue.map((brickRequest)=>{
             return brickRequest.data?1:0;
         });
-
-        console.log(mapper);
+        console.log(mapper);*/
 
         let brickRequest = bricksQueue[0];
         if (brickRequest && brickRequest.data) {
@@ -55,11 +54,14 @@ function EDFSQueueTest(url) {
     this.getBrick = function(brickHash, callback){
         let brickRequest = {brickHash: brickHash, callback: callback, data:null};
         bricksQueue.push(brickRequest);
+        setTimeout(()=>{
+            getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
+                brickRequest.data = {err:err, brickData:brickData};
+                handleBricksOrder();
+            });
+        },parseInt(Math.random()*1000));
 
-        getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
-            brickRequest.data = {err:err, brickData:brickData};
-            handleBricksOrder();
-        });
+
     };
 
 }

@@ -1,10 +1,13 @@
 let storeBricks = [];
+let requestsLimit = 50;
 
-let requestsLimit = 500;
 
-setInterval(() => {
-    requestsLimit += 10;
-}, 1500);
+//set some random interval up to 0.5 s to increase requests limit
+let updateRequestLimit = function(){
+    requestsLimit += parseInt(Math.random()*10);
+    setTimeout(updateRequestLimit, parseInt(Math.random()*500));
+}
+setTimeout(updateRequestLimit, parseInt(Math.random()*500));
 
 function checkLimit(callback) {
     let headers = [];
@@ -62,9 +65,10 @@ function doHttpGet(url, callback) {
             return callback(err, null, headers);
         }
 
+        // simulate some network delay up to 1.5 s
         setTimeout(()=>{
             processGetRequest(url, headers, callback);
-        },parseInt(Math.random()*500));
+        },parseInt(Math.random()*1500));
     });
 }
 

@@ -9,6 +9,7 @@ function EDFSBrickQueue(action, queueLimit) {
 
     let bricksQueue = [];
     let rateLimit = queueLimit;
+    let inExecution = 0;
 
     function executeQueue() {
 
@@ -16,15 +17,18 @@ function EDFSBrickQueue(action, queueLimit) {
             return;
         }
 
-        if (rateLimit <= 0) {
+        if (rateLimit === 0) {
             rateLimit++;
             return setTimeout(executeQueue, NETWORK_TIMEOUT);
         }
+
         rateLimit--;
         let item = bricksQueue.pop();
         let {callback, ...requestData} = item;
         let args = Object.values(requestData);
+        inExecution++;
         action(...args, (err, data, headers) => {
+            inExecution--;
                 if (err) {
                     if (err.statusCode === 429) {
                         console.log("Too many requests!");
@@ -38,9 +42,21 @@ function EDFSBrickQueue(action, queueLimit) {
                         let remainingQuota = Number.parseInt(headers['x-ratelimit-remaining']);
 
                         if (!isNaN(remainingQuota)) {
+
                             rateLimit = remainingQuota;
+                            if(rateLimit > 0){
+                                let freeSlots = rateLimit-inExecution;
+                                while(freeSlots>0){
+                                    executeQueue();
+                                    freeSlots--;
+                                }
+                            }
+                            else{
+                                executeQueue();
+                            }
+
                         }
-                        executeQueue();
+
                     }
 
                     if (callback) {
@@ -83,7 +99,6 @@ function EDFSBrickQueue(action, queueLimit) {
         }
 
         bricksQueue.push(queueData);
-
         if (rateLimit > 0) {
             executeQueue();
         }

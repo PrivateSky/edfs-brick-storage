@@ -3,7 +3,7 @@ require("../../../psknode/bundles/virtualMQ");
 require("../../../psknode/bundles/edfsBar");
 const assert = require("double-check").assert;
 const Brick = require("bar").Brick;
-const NR_OF_BRICKS = 50;
+const NR_OF_BRICKS = 100;
 const TIMEOUT = 60*1000; //1 minute
 let EDFSQueueTest = require("./mock/EDFSQueueTest").EDFSQueueTest;
 let queueTest = EDFSQueueTest("http://localhost:10000");
@@ -20,8 +20,9 @@ function generateBricks(nr_of_bricks) {
 }
 
 let bricks = generateBricks(NR_OF_BRICKS);
-
-let requestsFullFilled = 0;
+let putRequestsFullFilled = 0;
+let getRequestsFullFilled = 0;
+let receivedBricks = [];
 
 assert.begin("PutBrick", () => {
 }, TIMEOUT);
@@ -36,14 +37,14 @@ assert.callback("PutBrick", (callback) => {
                     console.log("Error",err);
                 }
 
-                requestsFullFilled++;
+                putRequestsFullFilled++;
 
-                if (requestsFullFilled === NR_OF_BRICKS) {
-                    assert.true(requestsFullFilled === NR_OF_BRICKS);
+                if (putRequestsFullFilled === NR_OF_BRICKS) {
+                    assert.true(putRequestsFullFilled === NR_OF_BRICKS);
                     callback();
                     testGetBrick();
-                } else if (requestsFullFilled > NR_OF_BRICKS) {
-                    assert.true(requestsFullFilled === NR_OF_BRICKS, "Received too many callbacks!");
+                } else if (putRequestsFullFilled > NR_OF_BRICKS) {
+                    assert.true(putRequestsFullFilled === NR_OF_BRICKS, "Received too many callbacks!");
                 }
             })
 
@@ -53,13 +54,27 @@ assert.callback("PutBrick", (callback) => {
 let testGetBrick = function(){
     assert.callback("GetBrick", (callback) => {
 
-        bricks.forEach((brick, index) => {
-            queueTest.getBrick(brick.getHash(), function (err, data) {
-                console.log("Data", data.getHash());
-            })
+        bricks.forEach((brick) => {
+                queueTest.getBrick(brick.getHash(), function (err, data) {
+                    getRequestsFullFilled++;
+                    receivedBricks.push(new Brick(brick.getData()));
+
+                    assert.equal(brick.getHash(), data.getHash(),"Brick hashes are not identical");
+
+                    if (getRequestsFullFilled === NR_OF_BRICKS) {
+                        assert.true(getRequestsFullFilled === NR_OF_BRICKS);
+
+                        for (let i = 0; i < bricks.length; i++) {
+                            assert.true(bricks[i].getData() === receivedBricks[i].getData(), "Brick arrays are not identical");
+                        }
+                        callback();
+                    } else if (getRequestsFullFilled > NR_OF_BRICKS) {
+                        assert.true(getRequestsFullFilled === NR_OF_BRICKS, "Received too many callbacks!");
+                    }
+                })
         });
     }, TIMEOUT);
-}
+};
 
 
 
