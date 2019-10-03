@@ -4,6 +4,7 @@ const Brick = bar.Brick;
 let PutBrickQueue = require("./EDFSBrickQueue").EDFSPutBrickQueue;
 let GetBrickQueue = require("./EDFSBrickQueue").EDFSGetBrickQueue;
 let bricksQueue = [];
+
 function EDFSBrickStorage(urls) {
 
     let putBrickQueue = new PutBrickQueue(30);
@@ -15,41 +16,17 @@ function EDFSBrickStorage(urls) {
 
     let urlIndex = -1;
 
-    function getStorageUrlAddress() {
-        urlIndex++;
-        if (urlIndex >= urls.length) {
-            urlIndex = 0;
-        }
-        return urls[urlIndex];
-    }
+    let map;
 
-    function isConnectionError(err){
-        if(err && err.code === "ECONNREFUSED"){
-            console.error("EDFS Server is unavailable! Try again later!");
-            return true;
-        }
-        return false;
-    }
-
-    function handleBricksOrder() {
-        let brickRequest = bricksQueue[0];
-        if (brickRequest && brickRequest.data) {
-            let data = brickRequest.data;
-            if(!isConnectionError(data.err)){
-                brickRequest.callback(data.err, new Brick(data.brickData));
-                bricksQueue.shift();
-                handleBricksOrder();
-            }
-
-        }
-    }
-
+    this.setBarMap = function (barMap) {
+        map = barMap;
+    };
 
     this.putBrick = function (brick, callback) {
         let callbackSent = false;
 
         let handler = function (err, data, headers) {
-            if(!isConnectionError(err)){
+            if (!isConnectionError(err)) {
                 if (callbackSent) {
                     if (err) {
                         callback(err);
@@ -62,7 +39,7 @@ function EDFSBrickStorage(urls) {
         let url = getStorageUrlAddress();
 
         putBrickQueue.addBrickRequest(url + "/EDFS/" + brick.getHash(),
-            brick.getData(),
+            brick.getTransformedData(),
             handler);
 
         if (putBrickQueue.getQueueFreeSlots() > 0) {
@@ -74,12 +51,12 @@ function EDFSBrickStorage(urls) {
 
     this.getBrick = function (brickHash, callback) {
 
-        let brickRequest = {brickHash: brickHash, callback: callback, data:null}
+        let brickRequest = {brickHash: brickHash, callback: callback, data: null};
         bricksQueue.push(brickRequest);
 
         let url = getStorageUrlAddress();
         getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
-            brickRequest.data = {err:err, brickData:brickData};
+            brickRequest.data = {err: err, brickData: brickData};
             handleBricksOrder();
         });
     };
@@ -89,7 +66,9 @@ function EDFSBrickStorage(urls) {
     };
 
     this.putBarMap = function (barMap, callback) {
+        map = barMap;
         const mapBrick = barMap.toBrick();
+        mapBrick.setTransformParameters(barMap.getTransformParameters());
         this.putBrick(mapBrick, (err) => {
             callback(err, mapBrick.getHash());
         });
@@ -110,8 +89,41 @@ function EDFSBrickStorage(urls) {
                 return callback(err);
             }
 
-            callback(undefined, new bar.FolderBarMap(JSON.parse(mapBrick.getData().toString())));
+            map = new bar.FolderBarMap(mapBrick);
+            callback(undefined, map);
         });
+    };
+
+    //------------------------------------------ internal methods ---------------------------------------------------
+    function getStorageUrlAddress() {
+        urlIndex++;
+        if (urlIndex >= urls.length) {
+            urlIndex = 0;
+        }
+        return urls[urlIndex];
+    }
+
+    function isConnectionError(err) {
+        if (err && err.code === "ECONNREFUSED") {
+            console.error("EDFS Server is unavailable! Try again later!");
+            return true;
+        }
+        return false;
+    }
+
+    function handleBricksOrder() {
+        let brickRequest = bricksQueue[0];
+        if (brickRequest && brickRequest.data) {
+            let data = brickRequest.data;
+            if (!isConnectionError(data.err)) {
+                const brick = new Brick();
+                brick.setTransformedData(data.brickData);
+                brickRequest.callback(data.err, brick);
+                bricksQueue.shift();
+                handleBricksOrder();
+            }
+
+        }
     }
 }
 
