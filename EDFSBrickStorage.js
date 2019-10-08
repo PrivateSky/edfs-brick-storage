@@ -23,6 +23,10 @@ function EDFSBrickStorage(urls) {
     };
 
     this.putBrick = function (brick, callback) {
+        putBrick(brick, callback, true);
+    };
+
+    function putBrick(brick, callback, isSerial){
         let callbackSent = false;
 
         let handler = function (err, data, headers) {
@@ -42,11 +46,11 @@ function EDFSBrickStorage(urls) {
             brick.getTransformedData(),
             handler);
 
-        if (putBrickQueue.getQueueFreeSlots() > 0) {
+        if (isSerial && putBrickQueue.getQueueFreeSlots() > 0) {
             callbackSent = true;
             callback();
         }
-    };
+    }
 
 
     this.getBrick = function (brickHash, callback) {
@@ -69,7 +73,7 @@ function EDFSBrickStorage(urls) {
         map = barMap;
         const mapBrick = barMap.toBrick();
         mapBrick.setTransformParameters(barMap.getTransformParameters());
-        this.putBrick(mapBrick, (err) => {
+        putBrick(mapBrick, (err, res) => {
             callback(err, mapBrick.getHash());
         });
     };
