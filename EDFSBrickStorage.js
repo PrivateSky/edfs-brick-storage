@@ -80,6 +80,10 @@ function EDFSBrickStorage(urls) {
             mapDigest = undefined;
         }
 
+        if (map) {
+            return callback(undefined, map);
+        }
+
         if (typeof mapDigest === "undefined") {
             return callback(undefined, new bar.FolderBarMap());
         }
