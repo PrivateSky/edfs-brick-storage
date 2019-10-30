@@ -54,7 +54,6 @@ function EDFSBrickStorage(urls) {
 
 
     this.getBrick = function (brickHash, callback) {
-
         let brickRequest = {brickHash: brickHash, callback: callback, data: null};
         bricksQueue.push(brickRequest);
 
@@ -73,8 +72,7 @@ function EDFSBrickStorage(urls) {
         map = barMap;
         const mapBrick = barMap.toBrick();
         mapBrick.setTransformParameters(barMap.getTransformParameters());
-        let brickId;
-        brickId = mapBrick.getDSeed();
+        let brickId = mapBrick.getLSeed();
         if (!brickId) {
             brickId = mapBrick.getHash();
         }
