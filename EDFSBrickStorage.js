@@ -23,10 +23,22 @@ function EDFSBrickStorage(urls) {
     };
 
     this.putBrick = function (brick, callback) {
-        putBrick(brick.getHash(), brick, callback, true);
+        const url = getStorageUrlAddress();
+        $$.remote.doHttpPost(url + "/EDFS/" + brick.getHash(), brick.getTransformedData(), (err) => {
+            if (err) {
+                return callback(err);
+            }
+
+            callback(undefined);
+        });
+        // putBrick(brick.getHash(), brick, true, callback);
     };
 
-    function putBrick(brickId, brick, callback, isSerial) {
+    function putBrick(brickId, brick, isSerial, callback) {
+        if (typeof isSerial === "function") {
+            callback = isSerial;
+            isSerial = undefined;
+        }
         let callbackSent = false;
 
         let handler = function (err, data, headers) {
@@ -54,14 +66,24 @@ function EDFSBrickStorage(urls) {
 
 
     this.getBrick = function (brickHash, callback) {
-        let brickRequest = {brickHash: brickHash, callback: callback, data: null};
-        bricksQueue.push(brickRequest);
-
         let url = getStorageUrlAddress();
-        getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
-            brickRequest.data = {err: err, brickData: brickData};
-            handleBricksOrder();
+
+        $$.remote.doHttpGet(url + "/EDFS/" + brickHash, (err, brickData) => {
+            if (err) {
+                return callback(err);
+            }
+
+            const brick = new Brick();
+            brick.setTransformedData(brickData);
+            callback(undefined, brick);
         });
+        // let brickRequest = {brickHash: brickHash, callback: callback, data: null};
+        // bricksQueue.push(brickRequest);
+        //
+        // getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
+        //     brickRequest.data = {err: err, brickData: brickData};
+        //     handleBricksOrder();
+        // });
     };
 
     this.deleteBrick = function (brickHash, callback) {
@@ -72,13 +94,13 @@ function EDFSBrickStorage(urls) {
         map = barMap;
         const mapBrick = barMap.toBrick();
         mapBrick.setTransformParameters(barMap.getTransformParameters());
-        let brickId = mapBrick.getLSeed();
-        if (!brickId) {
-            brickId = mapBrick.getHash();
-        }
-        putBrick(brickId, mapBrick, (err, res) => {
+        const brickId = mapBrick.getHash();
+        this.putBrick(mapBrick, (err) => {
             callback(err, brickId);
         });
+        // putBrick(brickId, mapBrick, true, (err, res) => {
+        //
+        // });
     };
 
     this.getBarMap = function (mapDigest, callback) {
