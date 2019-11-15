@@ -24,13 +24,7 @@ function EDFSBrickStorage(urls) {
 
     this.putBrick = function (brick, callback) {
         const url = getStorageUrlAddress();
-        $$.remote.doHttpPost(url + "/EDFS/" + brick.getHash(), brick.getTransformedData(), (err) => {
-            if (err) {
-                return callback(err);
-            }
-
-            callback(undefined);
-        });
+        $$.remote.doHttpPost(url + "/EDFS/" + brick.getHash(), brick.getTransformedData(), callback);
         // putBrick(brick.getHash(), brick, true, callback);
     };
 
