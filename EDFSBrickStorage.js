@@ -86,12 +86,17 @@ function EDFSBrickStorage(urls) {
 
     this.putBarMap = function (barMap, callback) {
         map = barMap;
-        const mapBrick = barMap.toBrick();
-        mapBrick.setTransformParameters(barMap.getTransformParameters());
-        const brickId = mapBrick.getHash();
-        this.putBrick(mapBrick, (err) => {
-            callback(err, brickId);
-        });
+        const barMapBrick = barMap.toBrick();
+        barMapBrick.setTransformParameters(barMap.getTransformParameters());
+
+        let brickId = barMapBrick.getId();
+        if (!brickId) {
+            brickId = barMapBrick.getHash();
+        }
+
+        barMapBrick.setId(brickId);
+        const url = getStorageUrlAddress();
+        $$.remote.doHttpPost(url + "/EDFS/" + brickId, barMapBrick.getTransformedData(), callback);
         // putBrick(brickId, mapBrick, true, (err, res) => {
         //
         // });
