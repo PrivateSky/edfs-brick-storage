@@ -7,7 +7,7 @@ require("edfs-brick-storage");
 const ArchiveConfigurator = bar.ArchiveConfigurator;
 //const assert = require("double-check").assert;
 const folderPath = "D:/temp/poze2";
-const createFsAdapter = bar.createFsBarWorker;
+const createFsAdapter = bar.createFsAdapter;
 ArchiveConfigurator.prototype.registerDiskAdapter("fsAdapter",createFsAdapter);
 const archiveConfigurator = new ArchiveConfigurator();
 archiveConfigurator.setDiskAdapter("fsAdapter");
