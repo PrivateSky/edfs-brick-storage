@@ -96,7 +96,7 @@ function EDFSBrickStorage(urls) {
 
         barMapBrick.setId(brickId);
         const url = getStorageUrlAddress();
-        $$.remote.doHttpPost(url + "/EDFS/" + brickId, barMapBrick.getTransformedData(), callback);
+        $$.remote.doHttpPost(url + "/EDFS/" + brickId, barMapBrick.getTransformedData(), (err => callback(err, barMapBrick.getSeed())));
         // putBrick(brickId, mapBrick, true, (err, res) => {
         //
         // });
