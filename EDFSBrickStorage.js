@@ -92,14 +92,11 @@ function EDFSBrickStorage(urls) {
         let brickId = barMapBrick.getId();
         if (!brickId) {
             brickId = barMapBrick.getHash();
+            barMapBrick.setId(brickId);
         }
 
-        barMapBrick.setId(brickId);
         const url = getStorageUrlAddress();
-        $$.remote.doHttpPost(url + "/EDFS/" + brickId, barMapBrick.getTransformedData(), (err => callback(err, barMapBrick.getSeed())));
-        // putBrick(brickId, mapBrick, true, (err, res) => {
-        //
-        // });
+        $$.remote.doHttpPost(url + "/EDFS/alias/" + brickId, barMapBrick.getTransformedData(), callback);
     };
 
     this.getBarMap = function (mapDigest, callback) {
@@ -116,11 +113,10 @@ function EDFSBrickStorage(urls) {
             return callback(undefined, new bar.FolderBarMap());
         }
 
-        this.getBrick(mapDigest, (err, mapBrick) => {
+        $$.remote.doHttpGet(url + "/EDFS/alias/" + mapDigest, (err, mapBrick) => {
             if (err) {
                 return callback(err);
             }
-
             map = new bar.FolderBarMap(mapBrick);
             callback(undefined, map);
         });
