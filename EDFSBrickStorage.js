@@ -96,7 +96,7 @@ function EDFSBrickStorage(urls) {
         }
 
         const url = getStorageUrlAddress();
-        $$.remote.doHttpPost(url + "/EDFS/alias/" + brickId, barMapBrick.getTransformedData(), callback);
+        $$.remote.doHttpPost(url + "/EDFS/alias/" + brickId, barMapBrick.getTransformedData(), (err => callback(err, brickId)));
     };
 
     this.getBarMap = function (mapDigest, callback) {
@@ -113,6 +113,7 @@ function EDFSBrickStorage(urls) {
             return callback(undefined, new bar.FolderBarMap());
         }
 
+        const url = getStorageUrlAddress();
         $$.remote.doHttpGet(url + "/EDFS/alias/" + mapDigest, (err, mapBrick) => {
             if (err) {
                 return callback(err);
