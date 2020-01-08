@@ -96,7 +96,7 @@ function EDFSBrickStorage(urls, communicationStrategy) {
         }
 
         const url = getStorageUrlAddress();
-        communicationStrategy.send(url + "/EDFS/alias/" + brickId(), barMapBrick.getTransformedData(), (err => callback(err, brickId)));
+        communicationStrategy.send(url + "/EDFS/alias/" + brickId, barMapBrick.getTransformedData(), (err => callback(err, brickId)));
         // $$.remote.doHttpPost(url + "/EDFS/alias/" + brickId, barMapBrick.getTransformedData(), (err => callback(err, brickId)));
     };
 
