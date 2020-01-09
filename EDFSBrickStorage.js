@@ -5,11 +5,7 @@ let bricksQueue = [];
 function EDFSBrickStorage(brickTransportStrategyName) {
 
     const bar = require("bar");
-    let putBrickQueue = new PutBrickQueue(30);
-    let getBrickQueue = new GetBrickQueue(30);
     const brickTransportStrategy = $$.brickTransportStrategiesRegistry.get(brickTransportStrategyName);
-    let urlIndex = -1;
-
     let map;
 
     this.setBarMap = function (barMap) {
@@ -17,8 +13,7 @@ function EDFSBrickStorage(brickTransportStrategyName) {
     };
 
     this.putBrick = function (brick, callback) {
-        const url = getStorageUrlAddress();
-        brickTransportStrategy.send(url + "/EDFS/" + brick.getHash(), brick.getTransformedData(), callback);
+        brickTransportStrategy.send(brick.getHash(), brick.getTransformedData(), callback);
         // $$.remote.doHttpPost(url + "/EDFS/" + brick.getHash(), brick.getTransformedData(), callback);
         // putBrick(brick.getHash(), brick, true, callback);
     };
@@ -55,7 +50,6 @@ function EDFSBrickStorage(brickTransportStrategyName) {
 
 
     this.getBrick = function (brickHash, callback) {
-        let url = getStorageUrlAddress();
 
         // $$.remote.doHttpGet(url + "/EDFS/" + brickHash, (err, brickData) => {
         brickTransportStrategy.get(brickHash, (err, brickData) => {
@@ -91,8 +85,7 @@ function EDFSBrickStorage(brickTransportStrategyName) {
             barMapBrick.setId(brickId);
         }
 
-        const url = getStorageUrlAddress();
-        brickTransportStrategy.send(url + "/EDFS/alias/" + brickId, barMapBrick.getTransformedData(), (err => callback(err, brickId)));
+        brickTransportStrategy.send(brickId, barMapBrick.getTransformedData(), (err => callback(err, brickId)));
         // $$.remote.doHttpPost(url + "/EDFS/alias/" + brickId, barMapBrick.getTransformedData(), (err => callback(err, brickId)));
     };
 
@@ -110,8 +103,7 @@ function EDFSBrickStorage(brickTransportStrategyName) {
             return callback(undefined, bar.createBarMap());
         }
 
-        const url = getStorageUrlAddress();
-        brickTransportStrategy.get(url + "/EDFS/alias" + mapDigest, (err, mapBrick) => {
+        brickTransportStrategy.get(mapDigest, (err, mapBrick) => {
             // $$.remote.doHttpGet(url + "/EDFS/alias/" + mapDigest, (err, mapBrick) => {
             if (err) {
                 return callback(err);
@@ -122,13 +114,6 @@ function EDFSBrickStorage(brickTransportStrategyName) {
     };
 
     //------------------------------------------ internal methods ---------------------------------------------------
-    function getStorageUrlAddress() {
-        urlIndex++;
-        if (urlIndex >= urls.length) {
-            urlIndex = 0;
-        }
-        return urls[urlIndex];
-    }
 
     function isConnectionError(err) {
         if (err && err.code === "ECONNREFUSED") {

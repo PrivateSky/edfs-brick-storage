@@ -1,6 +1,6 @@
 const MAX_QUE_SUPPORTED = 100;
 const NETWORK_TIMEOUT = 1000;
-
+require("psk-http-client");
 function EDFSBrickQueue(action, queueLimit) {
 
     if (!Number.isInteger(queueLimit) || queueLimit > MAX_QUE_SUPPORTED) {
