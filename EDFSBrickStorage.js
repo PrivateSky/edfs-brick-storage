@@ -103,11 +103,14 @@ function EDFSBrickStorage(brickTransportStrategyName) {
             return callback(undefined, bar.createBarMap());
         }
 
-        brickTransportStrategy.get(mapDigest, (err, mapBrick) => {
+        brickTransportStrategy.get(mapDigest, (err, barMapData) => {
             // $$.remote.doHttpGet(url + "/EDFS/alias/" + mapDigest, (err, mapBrick) => {
             if (err) {
                 return callback(err);
             }
+
+            const mapBrick = bar.createBrick();
+            mapBrick.setTransformedData(barMapData);
             map = bar.createBarMap(mapBrick);
             callback(undefined, map);
         });
