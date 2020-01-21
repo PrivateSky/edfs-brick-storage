@@ -51,9 +51,8 @@ function EDFSBrickStorage(brickTransportStrategyName) {
 
     this.getBrick = function (brickHash, callback) {
 
-        // $$.remote.doHttpGet(url + "/EDFS/" + brickHash, (err, brickData) => {
         brickTransportStrategy.get(brickHash, (err, brickData) => {
-        if (err) {
+            if (err) {
                 return callback(err);
             }
 
@@ -61,13 +60,6 @@ function EDFSBrickStorage(brickTransportStrategyName) {
             brick.setTransformedData(brickData);
             callback(undefined, brick);
         });
-        // let brickRequest = {brickHash: brickHash, callback: callback, data: null};
-        // bricksQueue.push(brickRequest);
-        //
-        // getBrickQueue.addBrickRequest(url + "/EDFS/" + brickHash, (err, brickData) => {
-        //     brickRequest.data = {err: err, brickData: brickData};
-        //     handleBricksOrder();
-        // });
     };
 
     this.deleteBrick = function (brickHash, callback) {
@@ -85,8 +77,32 @@ function EDFSBrickStorage(brickTransportStrategyName) {
             barMapBrick.setId(brickId);
         }
 
-        brickTransportStrategy.send(brickId, barMapBrick.getTransformedData(), (err => callback(err, brickId)));
-        // $$.remote.doHttpPost(url + "/EDFS/alias/" + brickId, barMapBrick.getTransformedData(), (err => callback(err, brickId)));
+        brickTransportStrategy.getHashForAlias(brickId, (err, hashesList) => {
+            if (err) {
+                return callback(err);
+            }
+
+            if (hashesList.length === 0) {
+                __sendBarMapBrick();
+            } else {
+                const barMapHash = hashesList[hashesList.length - 1];
+                if (barMapHash !== barMapBrick.getHash()) {
+                    __sendBarMapBrick();
+                } else {
+                    callback();
+                }
+            }
+
+            function __sendBarMapBrick() {
+                brickTransportStrategy.attachHashToAlias(brickId, barMapBrick.getHash(), (err) => {
+                    if (err) {
+                        return callback(err);
+                    }
+
+                    brickTransportStrategy.send(barMapBrick.getHash(), barMapBrick.getTransformedData(), callback);
+                });
+            }
+        });
     };
 
     this.getBarMap = function (mapDigest, callback) {
@@ -103,16 +119,27 @@ function EDFSBrickStorage(brickTransportStrategyName) {
             return callback(undefined, bar.createBarMap());
         }
 
-        brickTransportStrategy.get(mapDigest, (err, barMapData) => {
-            // $$.remote.doHttpGet(url + "/EDFS/alias/" + mapDigest, (err, mapBrick) => {
+        brickTransportStrategy.getHashForAlias(mapDigest, (err, hashesList) => {
             if (err) {
                 return callback(err);
             }
 
-            const mapBrick = bar.createBrick();
-            mapBrick.setTransformedData(barMapData);
-            map = bar.createBarMap(mapBrick);
-            callback(undefined, map);
+            let barMapId;
+            if (hashesList.length === 0) {
+                barMapId = mapDigest;
+            } else {
+                barMapId = hashesList[hashesList.length - 1];
+            }
+            brickTransportStrategy.get(barMapId, (err, barMapData) => {
+                if (err) {
+                    return callback(err);
+                }
+
+                const mapBrick = bar.createBrick();
+                mapBrick.setTransformedData(barMapData);
+                map = bar.createBarMap(mapBrick);
+                callback(undefined, map);
+            });
         });
     };
 
