@@ -1,11 +1,7 @@
-let PutBrickQueue = require("./EDFSBrickQueue").EDFSPutBrickQueue;
-let GetBrickQueue = require("./EDFSBrickQueue").EDFSGetBrickQueue;
-let bricksQueue = [];
-
-function EDFSBrickStorage(brickTransportStrategyName) {
+function EDFSBrickStorage(endpoint) {
 
     const bar = require("bar");
-    const brickTransportStrategy = $$.brickTransportStrategiesRegistry.get(brickTransportStrategyName);
+    const brickTransportStrategy = $$.brickTransportStrategiesRegistry.get(endpoint);
     let map;
 
     this.setBarMap = function (barMap) {
@@ -14,40 +10,7 @@ function EDFSBrickStorage(brickTransportStrategyName) {
 
     this.putBrick = function (brick, callback) {
         brickTransportStrategy.send(brick.getHash(), brick.getTransformedData(), callback);
-        // $$.remote.doHttpPost(url + "/EDFS/" + brick.getHash(), brick.getTransformedData(), callback);
-        // putBrick(brick.getHash(), brick, true, callback);
     };
-
-    function putBrick(brickId, brick, isSerial, callback) {
-        if (typeof isSerial === "function") {
-            callback = isSerial;
-            isSerial = undefined;
-        }
-        let callbackSent = false;
-
-        let handler = function (err, data, headers) {
-            if (!isConnectionError(err)) {
-                if (callbackSent) {
-                    if (err) {
-                        callback(err);
-                    }
-                } else {
-                    callback(err, data, headers)
-                }
-            }
-        };
-        let url = getStorageUrlAddress();
-
-        putBrickQueue.addBrickRequest(url + "/EDFS/" + brickId,
-            brick.getTransformedData(),
-            handler);
-
-        if (isSerial && putBrickQueue.getQueueFreeSlots() > 0) {
-            callbackSent = true;
-            callback();
-        }
-    }
-
 
     this.getBrick = function (brickHash, callback) {
 
@@ -142,31 +105,6 @@ function EDFSBrickStorage(brickTransportStrategyName) {
             });
         });
     };
-
-    //------------------------------------------ internal methods ---------------------------------------------------
-
-    function isConnectionError(err) {
-        if (err && err.code === "ECONNREFUSED") {
-            console.error("EDFS Server is unavailable! Try again later!");
-            return true;
-        }
-        return false;
-    }
-
-    function handleBricksOrder() {
-        let brickRequest = bricksQueue[0];
-        if (brickRequest && brickRequest.data) {
-            let data = brickRequest.data;
-            if (!isConnectionError(data.err)) {
-                const brick = bar.createBrick();
-                brick.setTransformedData(data.brickData);
-                brickRequest.callback(data.err, brick);
-                bricksQueue.shift();
-                handleBricksOrder();
-            }
-
-        }
-    }
 }
 
 module.exports = EDFSBrickStorage;

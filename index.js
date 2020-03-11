@@ -1,4 +1,4 @@
-module.exports.create = (brickTransportStrategyName) => {
+module.exports.create = (endpoint) => {
     const EDFSBrickStorage = require("./EDFSBrickStorage");
-    return new EDFSBrickStorage(brickTransportStrategyName)
+    return new EDFSBrickStorage(endpoint)
 };
