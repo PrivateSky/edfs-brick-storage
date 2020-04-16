@@ -104,6 +104,9 @@ function EDFSBrickStorage(endpoint) {
 
                 const mapBrick = bar.createBrick();
                 mapBrick.setTransformedData(barMapData);
+                if (barMapId !== mapBrick.getHash()) {
+                    return callback(Error("Invalid data received"));
+                }
                 map = bar.createBarMap(mapBrick);
                 callback(undefined, map);
             });
