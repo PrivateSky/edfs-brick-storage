@@ -21,6 +21,10 @@ function EDFSBrickStorage(endpoint) {
 
             const brick = bar.createBrick();
             brick.setTransformedData(brickData);
+
+            if (brickHash !== brick.getHash()) {
+                return callback(Error("The received data is invalid"));
+            }
             callback(undefined, brick);
         });
     };
