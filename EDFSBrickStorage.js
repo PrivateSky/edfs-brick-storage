@@ -38,10 +38,10 @@ function EDFSBrickStorage(endpoint) {
         const barMapBrick = barMap.toBrick();
         barMapBrick.setTransformParameters(barMap.getTransformParameters());
 
-        let brickId = barMapBrick.getId();
+        let brickId = barMapBrick.getKey();
         if (!brickId) {
             brickId = barMapBrick.getHash();
-            barMapBrick.setId(brickId);
+            barMapBrick.setKey(brickId);
         }
 
         brickTransportStrategy.getHashForAlias(brickId, (err, hashesList) => {
