@@ -33,6 +33,14 @@ function EDFSBrickStorage(endpoint) {
         throw new Error("Not implemented");
     };
 
+    this.getHashForAlias = function (brickId, callback) {
+        brickTransportStrategy.getHashForAlias(brickId, callback);
+    };
+
+    this.attachHashToAlias = function (alias, value, callback) {
+        brickTransportStrategy.attachHashToAlias(alias, value, callback);
+    };
+
     this.putBarMap = function (barMap, callback) {
         map = barMap;
         const barMapBrick = barMap.toBrick();
