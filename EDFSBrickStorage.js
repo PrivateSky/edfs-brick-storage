@@ -127,7 +127,7 @@ function EDFSBrickStorage(endpoint) {
             }
             brickTransportStrategy.get(barMapId, (err, barMapData) => {
                 if (err) {
-                    return callback(err);
+                    return callback(undefined, bar.createBarMap());
                 }
 
                 const mapBrick = bar.createBrick();
