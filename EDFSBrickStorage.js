@@ -65,8 +65,12 @@ function EDFSBrickStorage(endpoint) {
         brickTransportStrategy.getHashForAlias(brickId, callback);
     };
 
-    this.attachHashToAlias = function (alias, value, callback) {
-        brickTransportStrategy.attachHashToAlias(alias, value, callback);
+    this.attachHashToAlias = function (alias, value, lastValue, callback) {
+        if (typeof lastValue === 'function') {
+            callback = lastValue;
+            lastValue = undefined;
+        }
+        brickTransportStrategy.attachHashToAlias(alias, value, lastValue, callback);
     };
 
     this.putBarMap = function (barMap, callback) {
