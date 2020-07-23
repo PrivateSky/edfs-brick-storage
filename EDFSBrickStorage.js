@@ -1,5 +1,6 @@
 function EDFSBrickStorage(endpoint) {
-
+    //ensuring that registry is initialized
+    require("./brickTransportStrategies/brickTransportStrategiesRegistry");
     const bar = require("bar");
     const brickTransportStrategy = $$.brickTransportStrategiesRegistry.get(endpoint);
     let map;
@@ -53,8 +54,6 @@ function EDFSBrickStorage(endpoint) {
             parseResponse(bricksData);
             callback(undefined, bricks);
         });
-
-
     };
 
     this.deleteBrick = function (brickHash, callback) {
