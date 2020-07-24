@@ -5,8 +5,8 @@ function EDFSBrickStorage(endpoint) {
     const brickTransportStrategy = $$.brickTransportStrategiesRegistry.get(endpoint);
     let map;
 
-    this.setBarMap = function (barMap) {
-        map = barMap;
+    this.setBrickMap = function (brickMap) {
+        map = brickMap;
     };
 
     this.putBrick = function (brick, callback) {
@@ -72,15 +72,15 @@ function EDFSBrickStorage(endpoint) {
         brickTransportStrategy.attachHashToAlias(alias, value, lastValue, callback);
     };
 
-    this.putBarMap = function (barMap, callback) {
-        map = barMap;
-        const barMapBrick = barMap.toBrick();
-        barMapBrick.setTransformParameters(barMap.getTransformParameters());
+    this.putBrickMap = function (brickMap, callback) {
+        map = brickMap;
+        const brickMapBrick = brickMap.toBrick();
+        brickMapBrick.setTransformParameters(brickMap.getTransformParameters());
 
-        let brickId = barMapBrick.getKey();
+        let brickId = brickMapBrick.getKey();
         if (!brickId) {
-            brickId = barMapBrick.getHash();
-            barMapBrick.setKey(brickId);
+            brickId = brickMapBrick.getHash();
+            brickMapBrick.setKey(brickId);
         }
 
         brickTransportStrategy.getHashForAlias(brickId, (err, hashesList) => {
@@ -89,29 +89,29 @@ function EDFSBrickStorage(endpoint) {
             }
 
             if (hashesList.length === 0) {
-                __sendBarMapBrick();
+                __sendBrickMapBrick();
             } else {
-                const barMapHash = hashesList[hashesList.length - 1];
-                if (barMapHash !== barMapBrick.getHash()) {
-                    __sendBarMapBrick();
+                const brickMapHash = hashesList[hashesList.length - 1];
+                if (brickMapHash !== brickMapBrick.getHash()) {
+                    __sendBrickMapBrick();
                 } else {
                     callback();
                 }
             }
 
-            function __sendBarMapBrick() {
-                brickTransportStrategy.attachHashToAlias(brickId, barMapBrick.getHash(), (err) => {
+            function __sendBrickMapBrick() {
+                brickTransportStrategy.attachHashToAlias(brickId, brickMapBrick.getHash(), (err) => {
                     if (err) {
                         return callback(err);
                     }
 
-                    brickTransportStrategy.send(barMapBrick.getHash(), barMapBrick.getTransformedData(), callback);
+                    brickTransportStrategy.send(brickMapBrick.getHash(), brickMapBrick.getTransformedData(), callback);
                 });
             }
         });
     };
 
-    this.getBarMap = function (mapDigest, callback) {
+    this.getBrickMap = function (mapDigest, callback) {
         if (typeof mapDigest === "function") {
             callback = mapDigest;
             mapDigest = undefined;
@@ -122,7 +122,7 @@ function EDFSBrickStorage(endpoint) {
         }
 
         if (typeof mapDigest === "undefined") {
-            return callback(undefined, bar.createBarMap());
+            return callback(undefined, bar.createBrickMap());
         }
 
         brickTransportStrategy.getHashForAlias(mapDigest, (err, hashesList) => {
@@ -130,23 +130,23 @@ function EDFSBrickStorage(endpoint) {
                 return callback(err);
             }
 
-            let barMapId;
+            let brickMapId;
             if (hashesList.length === 0) {
-                barMapId = mapDigest;
+                brickMapId = mapDigest;
             } else {
-                barMapId = hashesList[hashesList.length - 1];
+                brickMapId = hashesList[hashesList.length - 1];
             }
-            brickTransportStrategy.get(barMapId, (err, barMapData) => {
+            brickTransportStrategy.get(brickMapId, (err, brickMapData) => {
                 if (err) {
-                    return callback(undefined, bar.createBarMap());
+                    return callback(undefined, bar.createBrickMap());
                 }
 
                 const mapBrick = bar.createBrick();
-                mapBrick.setTransformedData(barMapData);
-                if (barMapId !== mapBrick.getHash()) {
+                mapBrick.setTransformedData(brickMapData);
+                if (brickMapId !== mapBrick.getHash()) {
                     return callback(Error("Invalid data received"));
                 }
-                map = bar.createBarMap(mapBrick);
+                map = bar.createBrickMap(mapBrick);
                 callback(undefined, map);
             });
         });
