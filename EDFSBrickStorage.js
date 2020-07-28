@@ -10,11 +10,18 @@ function EDFSBrickStorage(endpoint) {
     };
 
     this.putBrick = function (dlDomain, brick, callback) {
+        if (typeof brick === "function") {
+            callback = brick;
+            brick = dlDomain;
+        }
         brickTransportStrategy.send(brick.getHash(), brick.getTransformedData(), callback);
     };
 
     this.getBrick = function (dlDomain, brickHash, callback) {
-
+        if (typeof brickHash === "function") {
+            callback = brickHash;
+            brickHash = dlDomain;
+        }
         brickTransportStrategy.get(brickHash, (err, brickData) => {
             if (err) {
                 return callback(err);
@@ -32,6 +39,10 @@ function EDFSBrickStorage(endpoint) {
 
     const BRICK_MAX_SIZE_IN_BYTES = 4;
     this.getMultipleBricks = function (dlDomain, brickHashes, callback) {
+        if (typeof brickHashes === "function") {
+            callback = brickHashes;
+            brickHashes = dlDomain;
+        }
         brickTransportStrategy.getMultipleBricks(brickHashes, (err, bricksData) => {
             if (err) {
                 return callback(err);
