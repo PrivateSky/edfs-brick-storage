@@ -1,4 +1,4 @@
-function EDFSBrickStorage(endpoint) {
+function BrickStorageService(endpoint) {
     //ensuring that registry is initialized
     require("./brickTransportStrategies/brickTransportStrategiesRegistry");
     const bar = require("bar");
@@ -70,19 +70,7 @@ function EDFSBrickStorage(endpoint) {
     this.deleteBrick = function (brickHash, callback) {
         throw new Error("Not implemented");
     };
-
-    this.getAliasVersions = function (brickId, callback) {
-        brickTransportStrategy.getHashForAlias(brickId, callback);
-    };
-
-    this.updateAlias = function (alias, value, lastValue, callback) {
-        if (typeof lastValue === 'function') {
-            callback = lastValue;
-            lastValue = undefined;
-        }
-        brickTransportStrategy.attachHashToAlias(alias, value, lastValue, callback);
-    };
 }
 
-module.exports = EDFSBrickStorage;
+module.exports = BrickStorageService;
 
