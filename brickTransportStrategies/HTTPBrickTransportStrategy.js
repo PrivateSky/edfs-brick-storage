@@ -64,7 +64,7 @@ function HTTPBrickTransportStrategy(endpoint) {
     };
 
     this.getHashForAlias = (alias, callback) => {
-        $$.remote.doHttpGet(endpoint + "/anchoring/getVersions/" + alias, (err, hashesList) => {
+        $$.remote.doHttpGet(endpoint + "/anchor/versions/" + alias, (err, hashesList) => {
             if (err) {
                 return callback(err)
             }
@@ -74,7 +74,7 @@ function HTTPBrickTransportStrategy(endpoint) {
     };
 
     this.attachHashToAlias = (alias, name, lastName, callback) => {
-        let anchoringUrl = `${endpoint}/anchoring/attachHashToAlias/${name}`;
+        let anchoringUrl = `${endpoint}/anchor/add/${name}`;
         if (typeof lastName === 'function') {
             callback = lastName;
             lastName = undefined;

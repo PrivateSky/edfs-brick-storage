@@ -127,7 +127,7 @@ function FetchBrickTransportStrategy(initialConfig) {
     };
 
     this.getHashForAlias = (alias, callback) => {
-        fetch(url + "/anchoring/getVersions/" + alias, {
+        fetch(url + "/anchor/versions/" + alias, {
             method: 'GET',
             mode: 'cors',
             headers: {
@@ -146,7 +146,7 @@ function FetchBrickTransportStrategy(initialConfig) {
     };
 
     this.attachHashToAlias = (alias, name, lastName, callback) => {
-        let anchoringUrl = `${url}/anchoring/attachHashToAlias/${name}`;
+        let anchoringUrl = `${url}/anchor/add/${name}`;
         if (typeof lastName === 'function') {
             callback = lastName;
             lastName = undefined;
