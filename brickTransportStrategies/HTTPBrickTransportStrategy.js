@@ -1,8 +1,8 @@
 function HTTPBrickTransportStrategy(endpoint) {
     require("psk-http-client");
 
-    this.send = (name, data, callback) => {
-        $$.remote.doHttpPost(endpoint + "/EDFS/" + name, data, (err, brickDigest) => {
+    this.send = (data, callback) => {
+        $$.remote.doHttpPost(endpoint + "/bricks", data, (err, brickDigest) => {
             if (err) {
                 return callback(err);
             }
@@ -17,7 +17,7 @@ function HTTPBrickTransportStrategy(endpoint) {
     };
 
     this.get = (name, callback) => {
-        $$.remote.doHttpGet(endpoint + "/EDFS/" + name, callback);
+        $$.remote.doHttpGet(endpoint + "/bricks/" + name, callback);
     };
 
     const parallelBricksCounter = 50;
@@ -45,7 +45,7 @@ function HTTPBrickTransportStrategy(endpoint) {
         function makeRequests(){
             let query = queries.shift();
             //console.log("query", query);
-            $$.remote.doHttpGet(endpoint + "/EDFS/downloadMultipleBricks" + query, function(err, result){
+            $$.remote.doHttpGet(endpoint + "/bricks/downloadMultipleBricks" + query, function(err, result){
                 if(err){
                     return callback(err);
                 }

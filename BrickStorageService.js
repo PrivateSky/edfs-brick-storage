@@ -14,7 +14,7 @@ function BrickStorageService(endpoint) {
             callback = brick;
             brick = dlDomain;
         }
-        brickTransportStrategy.send(brick.getHash(), brick.getTransformedData(), callback);
+        brickTransportStrategy.send(brick.getTransformedData(), callback);
     };
 
     this.getBrick = function (dlDomain, brickHash, callback) {
@@ -29,7 +29,6 @@ function BrickStorageService(endpoint) {
 
             const brick = bar.createBrick();
             brick.setTransformedData(brickData);
-
             if (brickHash !== brick.getHash()) {
                 return callback(Error("The received data is invalid"));
             }

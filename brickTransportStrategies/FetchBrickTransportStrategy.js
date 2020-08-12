@@ -1,8 +1,8 @@
 function FetchBrickTransportStrategy(initialConfig) {
     const url = initialConfig;
-    this.send = (name, data, callback) => {
+    this.send = (data, callback) => {
 
-        fetch(url + "/EDFS/" + name, {
+        fetch(url + "/bricks", {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -26,7 +26,7 @@ function FetchBrickTransportStrategy(initialConfig) {
     };
 
     this.get = (name, callback) => {
-        fetch(url + "/EDFS/" + name, {
+        fetch(url + "/bricks/" + name, {
             method: 'GET',
             mode: 'cors',
             headers: {
@@ -74,7 +74,7 @@ function FetchBrickTransportStrategy(initialConfig) {
         function makeRequests(){
             let query = queries.shift();
             //console.log("query", query);
-            fetch(url + "/EDFS/downloadMultipleBricks" + query, {
+            fetch(url + "/bricks/downloadMultipleBricks" + query, {
                 method: 'GET',
                 mode: 'cors',
                 headers: {
