@@ -2,7 +2,7 @@ function HTTPBrickTransportStrategy(endpoint) {
     require("psk-http-client");
 
     this.send = (data, callback) => {
-        $$.remote.doHttpPost(endpoint + "/bricks", data, (err, brickDigest) => {
+        $$.remote.doHttpPut(endpoint + "/bricks/put-brick", data, (err, brickDigest) => {
             if (err) {
                 return callback(err);
             }
@@ -17,7 +17,7 @@ function HTTPBrickTransportStrategy(endpoint) {
     };
 
     this.get = (name, callback) => {
-        $$.remote.doHttpGet(endpoint + "/bricks/" + name, callback);
+        $$.remote.doHttpGet(endpoint + "/bricks/get-brick/" + name, callback);
     };
 
     const parallelBricksCounter = 50;
