@@ -2,8 +2,8 @@ function FetchBrickTransportStrategy(initialConfig) {
     const url = initialConfig;
     this.send = (data, callback) => {
 
-        fetch(url + "/bricks", {
-            method: 'POST',
+        fetch(url + "/bricks/put-brick", {
+            method: 'PUT',
             mode: 'cors',
             headers: {
                 'Content-Type': 'application/octet-stream'
@@ -26,7 +26,7 @@ function FetchBrickTransportStrategy(initialConfig) {
     };
 
     this.get = (name, callback) => {
-        fetch(url + "/bricks/" + name, {
+        fetch(url + "/bricks/get-brick/" + name, {
             method: 'GET',
             mode: 'cors',
             headers: {
