@@ -156,7 +156,7 @@ function FetchBrickTransportStrategy(initialConfig) {
             anchoringUrl = `${anchoringUrl}/${lastName}`;
         }
         fetch(anchoringUrl, {
-            method: 'POST',
+            method: 'PUT',
             mode: 'cors',
             headers: {
                 'Content-Type': 'application/octet-stream'

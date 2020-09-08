@@ -83,7 +83,7 @@ function HTTPBrickTransportStrategy(endpoint) {
         if (lastName !== undefined) {
             anchoringUrl = `${anchoringUrl}/${lastName}`;
         }
-        $$.remote.doHttpPost(anchoringUrl, alias, callback);
+        $$.remote.doHttpPut(anchoringUrl, alias, callback);
     };
 
     this.getLocator = () => {
