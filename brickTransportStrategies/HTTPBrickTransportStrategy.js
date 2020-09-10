@@ -26,10 +26,10 @@ function HTTPBrickTransportStrategy(endpoint) {
 
         let counter = 0;
         let queries = [];
-        while(counter*parallelBricksCounter < brickHashes.length){
-            let hashes = brickHashes.slice(counter*parallelBricksCounter, counter*parallelBricksCounter+parallelBricksCounter);
+        while (counter * parallelBricksCounter < brickHashes.length) {
+            let hashes = brickHashes.slice(counter * parallelBricksCounter, counter * parallelBricksCounter + parallelBricksCounter);
             //console.log("hashes", hashes);
-            let q = "?" ;
+            let q = "?";
 
             hashes.forEach(brickHash => {
                 q += "hashes=" + brickHash + "&";
@@ -42,19 +42,19 @@ function HTTPBrickTransportStrategy(endpoint) {
         //console.log("queries.length", queries.length);
         //console.log("brickHashes.length", brickHashes.length);
         let results = [];
-        function makeRequests(){
+        function makeRequests() {
             let query = queries.shift();
             //console.log("query", query);
-            $$.remote.doHttpGet(endpoint + "/bricks/downloadMultipleBricks" + query, function(err, result){
-                if(err){
+            $$.remote.doHttpGet(endpoint + "/bricks/downloadMultipleBricks" + query, function (err, result) {
+                if (err) {
                     return callback(err);
                 }
 
                 results.push(result);
 
-                if(queries.length === 0){
+                if (queries.length === 0) {
                     return callback(undefined, results.length === 1 ? result : Buffer.concat(results));
-                }else{
+                } else {
                     return makeRequests();
                 }
             });
@@ -74,16 +74,18 @@ function HTTPBrickTransportStrategy(endpoint) {
     };
 
     this.attachHashToAlias = (alias, name, lastName, callback) => {
-        let anchoringUrl = `${endpoint}/anchor/add/${name}`;
+        let anchoringUrl = `${endpoint}/anchor/add/${alias}`;
         if (typeof lastName === 'function') {
             callback = lastName;
             lastName = undefined;
         }
 
-        if (lastName !== undefined) {
-            anchoringUrl = `${anchoringUrl}/${lastName}`;
-        }
-        $$.remote.doHttpPut(anchoringUrl, alias, callback);
+        $$.remote.doHttpPut(anchoringUrl, {
+            hash: {
+                new: name,
+                last: lastName
+            }
+        }, callback);
     };
 
     this.getLocator = () => {

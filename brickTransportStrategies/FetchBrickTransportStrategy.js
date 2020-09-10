@@ -55,10 +55,10 @@ function FetchBrickTransportStrategy(initialConfig) {
 
         let counter = 0;
         let queries = [];
-        while(counter*parallelBricksCounter < brickHashes.length){
-            let hashes = brickHashes.slice(counter*parallelBricksCounter, counter*parallelBricksCounter+parallelBricksCounter);
+        while (counter * parallelBricksCounter < brickHashes.length) {
+            let hashes = brickHashes.slice(counter * parallelBricksCounter, counter * parallelBricksCounter + parallelBricksCounter);
             //console.log("hashes", hashes);
-            let q = "?" ;
+            let q = "?";
 
             hashes.forEach(brickHash => {
                 q += "hashes=" + brickHash + "&";
@@ -71,7 +71,7 @@ function FetchBrickTransportStrategy(initialConfig) {
         //console.log("queries.length", queries.length);
         //console.log("brickHashes.length", brickHashes.length);
         let results = [];
-        function makeRequests(){
+        function makeRequests() {
             let query = queries.shift();
             //console.log("query", query);
             fetch(url + "/bricks/downloadMultipleBricks" + query, {
@@ -89,9 +89,9 @@ function FetchBrickTransportStrategy(initialConfig) {
 
                 results.push(ab);
 
-                if(queries.length === 0){
+                if (queries.length === 0) {
                     return callback(undefined, compactPartialResults(...results));
-                }else{
+                } else {
                     return makeRequests();
                 }
             }).catch(error => {
@@ -99,18 +99,18 @@ function FetchBrickTransportStrategy(initialConfig) {
             });
         }
 
-        function compactPartialResults(...arrayBuffers){
+        function compactPartialResults(...arrayBuffers) {
             let newSize = 0;
 
-            arrayBuffers.forEach(ab=>{
+            arrayBuffers.forEach(ab => {
                 newSize += ab.byteLength;
             });
 
             let newAB = new Uint8Array(newSize);
             let lastSize = 0;
-            arrayBuffers.forEach((ab, index)=>{
+            arrayBuffers.forEach((ab, index) => {
                 newAB.set(new Uint8Array(ab), lastSize);
-                lastSize +=ab.byteLength;
+                lastSize += ab.byteLength;
             });
 
             let buffer = new Buffer(newSize);
@@ -146,22 +146,25 @@ function FetchBrickTransportStrategy(initialConfig) {
     };
 
     this.attachHashToAlias = (alias, name, lastName, callback) => {
-        let anchoringUrl = `${url}/anchor/add/${name}`;
+        let anchoringUrl = `${url}/anchor/add/${alias}`;
         if (typeof lastName === 'function') {
             callback = lastName;
             lastName = undefined;
         }
 
-        if (lastName !== undefined) {
-            anchoringUrl = `${anchoringUrl}/${lastName}`;
-        }
+
         fetch(anchoringUrl, {
             method: 'PUT',
             mode: 'cors',
             headers: {
-                'Content-Type': 'application/octet-stream'
+                'Content-Type': 'application/json'
             },
-            body: alias
+            body: {
+                hash: {
+                    new: name,
+                    last: lastName
+                }
+            }
         }).then(response => {
             if (response.status >= 400) {
                 throw new Error(`An error occurred ${response.statusText}`);
