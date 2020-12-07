@@ -38,7 +38,7 @@ function FetchBrickTransportStrategy(initialConfig) {
             }
             return response.arrayBuffer();
         }).then(arrayBuffer => {
-            let buffer = new Buffer(arrayBuffer.byteLength);
+            let buffer = new $$.Buffer(arrayBuffer.byteLength);
             let view = new Uint8Array(arrayBuffer);
             for (let i = 0; i < buffer.length; ++i) {
                 buffer[i] = view[i];
@@ -113,7 +113,7 @@ function FetchBrickTransportStrategy(initialConfig) {
                 lastSize += ab.byteLength;
             });
 
-            let buffer = new Buffer(newSize);
+            let buffer = new $$.Buffer(newSize);
             let view = new Uint8Array(newAB);
             for (let i = 0; i < buffer.length; ++i) {
                 buffer[i] = view[i];

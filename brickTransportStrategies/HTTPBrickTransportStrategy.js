@@ -53,7 +53,7 @@ function HTTPBrickTransportStrategy(endpoint) {
                 results.push(result);
 
                 if (queries.length === 0) {
-                    return callback(undefined, results.length === 1 ? result : Buffer.concat(results));
+                    return callback(undefined, results.length === 1 ? result : $$.Buffer.concat(results));
                 } else {
                     return makeRequests();
                 }

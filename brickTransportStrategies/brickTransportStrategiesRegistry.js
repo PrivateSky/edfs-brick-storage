@@ -15,7 +15,7 @@ function BrickTransportStrategiesRegistry() {
 
     this.get = (endpoint) => {
         if (typeof endpoint !== "string" || endpoint.length === 0) {
-            throw Error(`Invalid endpoint ${endpoint}, ${typeof endpoint} ${Buffer.isBuffer(endpoint)}`);
+            throw Error(`Invalid endpoint ${endpoint}, ${typeof endpoint} ${$$.Buffer.isBuffer(endpoint)}`);
         }
 
         const strategyName = getStrategyNameFromEndpoint(endpoint);
